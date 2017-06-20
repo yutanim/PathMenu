@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-@objc public protocol PathMenuDelegate: class {
+public protocol PathMenuDelegate: class {
     func didSelect(on menu: PathMenu, index: Int)
     func didFinishAnimationClose(on menu: PathMenu)
     func didFinishAnimationOpen(on menu: PathMenu)
@@ -17,7 +17,7 @@ import UIKit
     func willStartAnimationClose(on menu: PathMenu)
 }
 
-public class PathMenu: UIView {
+open class PathMenu: UIView, PathMenuItemDelegate {
     
     struct Radius {
         static var near: CGFloat = 110.0
@@ -73,7 +73,7 @@ public class PathMenu: UIView {
     }
     
     public var startButton: PathMenuItem?
-    public weak var delegate: PathMenuDelegate?
+    weak var delegate: PathMenuDelegate?
 
     public var flag: Int = 0
     public var timer: Timer?
@@ -130,18 +130,14 @@ public class PathMenu: UIView {
     
     //MARK: UIView method
     
-    public override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         if motionState == .expand { return true }
         return startButton?.frame.contains(point) ?? false
     }
     
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        handleTap()
-    }
-    
     //MARK: Animation and Position
     
-    public func handleTap() {
+    open func handleTap() {
         let selector: Selector
         let angle: CGFloat
         
@@ -336,14 +332,12 @@ public class PathMenu: UIView {
         
         return animationgroup
     }
-}
-
-extension PathMenu: PathMenuItemDelegate {
-    public func touchesBegin(on item: PathMenuItem) {
+    
+    open func touchesStart(on item: PathMenuItem) {
         if item == startButton { handleTap() }
     }
     
-    public func touchesEnd(on item: PathMenuItem) {
+    open func touchesFinished(on item: PathMenuItem) {
         if item == startButton { return }
         
         let blowup = blowupAnimation(at: item.center)
@@ -365,14 +359,16 @@ extension PathMenu: PathMenuItemDelegate {
         let angle = motionState == .expand ? (CGFloat.pi / 2) + CGFloat.pi : 0.0
         UIView.animate(withDuration: Double(startMenuAnimationDuration), animations: { [weak self] in
             self?.startButton?.transform = CGAffineTransform(rotationAngle: angle)
-        }, completion: { [weak self] _ in
-            guard let strongSelf = self else { return }
-            strongSelf.delegate?.didFinishAnimationClose(on: strongSelf)
+            }, completion: { [weak self] _ in
+                guard let strongSelf = self else { return }
+                strongSelf.delegate?.didFinishAnimationClose(on: strongSelf)
         })
         
         delegate?.didSelect(on: self, index: item.tag - 1000)
+        
     }
 }
+
 
 extension PathMenu: CAAnimationDelegate {
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {

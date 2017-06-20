@@ -8,12 +8,12 @@
 
 import UIKit
 
-public protocol PathMenuItemDelegate: class {
-    func touchesBegin(on item: PathMenuItem)
-    func touchesEnd(on item: PathMenuItem)
+protocol PathMenuItemDelegate {
+    func touchesStart(on item: PathMenuItem)
+    func touchesFinished(on item: PathMenuItem)
 }
 
-public class PathMenuItem: UIImageView {
+open class PathMenuItem: UIImageView {
     
     public var startPoint: CGPoint = CGPoint.zero
     public var endPoint: CGPoint = CGPoint.zero
@@ -21,9 +21,9 @@ public class PathMenuItem: UIImageView {
     public var farPoint: CGPoint = CGPoint.zero
 
     public var contentImageView: UIImageView?
-    public weak var delegate: PathMenuItemDelegate?
+    var delegate: PathMenuItemDelegate?
     
-    public override var isHighlighted: Bool {
+    open override var isHighlighted: Bool {
         didSet {
             contentImageView?.isHighlighted = isHighlighted
         }
@@ -53,7 +53,7 @@ public class PathMenuItem: UIImageView {
     
     // MARK: UIView method
     
-    public override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         if let image = image {
             bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
@@ -70,12 +70,12 @@ public class PathMenuItem: UIImageView {
         }
     }
     
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         isHighlighted = true
-        delegate?.touchesBegin(on: self)
+        delegate?.touchesStart(on: self)
     }
     
-    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    open override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let location = touches.first?.location(in: self) {
             if !scale(rect: bounds, n: 2.0).contains(location) {
                 isHighlighted = false
@@ -83,16 +83,16 @@ public class PathMenuItem: UIImageView {
         }
     }
     
-    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let location = touches.first?.location(in: self) {
             if scale(rect: bounds, n: 2.0).contains(location) {
                 isHighlighted = false
-                delegate?.touchesEnd(on: self)
+                delegate?.touchesFinished(on: self)
             }
         }
     }
     
-    public override func touchesCancelled(_ touches: Set<UITouch>?, with event: UIEvent?) {
+    open override func touchesCancelled(_ touches: Set<UITouch>?, with event: UIEvent?) {
         isHighlighted = false
     }
     
